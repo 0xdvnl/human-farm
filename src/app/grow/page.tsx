@@ -1,4 +1,5 @@
 'use client';
+// Force rebuild for production env vars - v2
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';

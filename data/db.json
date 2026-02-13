@@ -1,0 +1,211 @@
+{
+  "users": [
+    {
+      "id": "3e55ad4d-f702-448e-94da-93b2ec7b33e2",
+      "type": "human",
+      "email": "alex@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.279Z",
+      "updated_at": "2026-02-06T08:37:34.672Z",
+      "wallet_address": "0x132af7c9fe6354baec75388152d3c00aaa3e2687"
+    },
+    {
+      "id": "c1571b0a-91a8-4af7-96af-a0d613f67d65",
+      "type": "human",
+      "email": "sarah@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.279Z",
+      "updated_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "id": "8ab5af1e-7ccd-40ca-a1b6-2516a59e515c",
+      "type": "human",
+      "email": "mike@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.279Z",
+      "updated_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "id": "7bd0ef13-6ad3-4132-ad0a-ce7c376c6c67",
+      "type": "human",
+      "email": "emma@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.279Z",
+      "updated_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "id": "0c5ca103-e879-4ed0-a897-244a6debda14",
+      "type": "human",
+      "email": "james@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.280Z",
+      "updated_at": "2026-02-06T07:40:26.280Z"
+    },
+    {
+      "id": "8c245689-617e-44e9-ab7d-971a8d6223d8",
+      "type": "agent",
+      "email": "agent@example.com",
+      "password_hash": "f3ab6d7f779ddc29da66448ff3711af1df1289c9de16f5d76c918d9f3ef63b2e",
+      "created_at": "2026-02-06T07:40:26.280Z",
+      "updated_at": "2026-02-06T07:40:26.280Z"
+    }
+  ],
+  "human_profiles": [
+    {
+      "user_id": "3e55ad4d-f702-448e-94da-93b2ec7b33e2",
+      "display_name": "Alex Turner",
+      "bio": "Experienced runner for pickups and deliveries in SF Bay Area. Fast and reliable.",
+      "avatar_url": null,
+      "hourly_rate_usd": 35,
+      "location_city": "San Francisco",
+      "location_country": "USA",
+      "location_lat": null,
+      "location_lng": null,
+      "skills": [
+        "pickups",
+        "deliveries",
+        "driving",
+        "errands"
+      ],
+      "availability": null,
+      "verification_level": 2,
+      "total_tasks": 17,
+      "avg_rating": 4.217050681889049,
+      "response_time_mins": 43,
+      "is_active": true,
+      "last_active_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "user_id": "c1571b0a-91a8-4af7-96af-a0d613f67d65",
+      "display_name": "Sarah Chen",
+      "bio": "Professional photographer with 5 years experience. Specialized in real estate and product photography.",
+      "avatar_url": null,
+      "hourly_rate_usd": 75,
+      "location_city": "Los Angeles",
+      "location_country": "USA",
+      "location_lat": null,
+      "location_lng": null,
+      "skills": [
+        "photography",
+        "videography",
+        "real_estate"
+      ],
+      "availability": null,
+      "verification_level": 0,
+      "total_tasks": 8,
+      "avg_rating": 4.371865536856848,
+      "response_time_mins": 20,
+      "is_active": true,
+      "last_active_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "user_id": "8ab5af1e-7ccd-40ca-a1b6-2516a59e515c",
+      "display_name": "Mike Johnson",
+      "bio": "IT professional available for hardware setup and technical tasks. Certified in multiple platforms.",
+      "avatar_url": null,
+      "hourly_rate_usd": 60,
+      "location_city": "Seattle",
+      "location_country": "USA",
+      "location_lat": null,
+      "location_lng": null,
+      "skills": [
+        "hardware_setup",
+        "it_support",
+        "testing"
+      ],
+      "availability": null,
+      "verification_level": 1,
+      "total_tasks": 6,
+      "avg_rating": 4.242028568569294,
+      "response_time_mins": 50,
+      "is_active": true,
+      "last_active_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "user_id": "7bd0ef13-6ad3-4132-ad0a-ce7c376c6c67",
+      "display_name": "Emma Williams",
+      "bio": "Former retail manager, expert at mystery shopping and business verification.",
+      "avatar_url": null,
+      "hourly_rate_usd": 40,
+      "location_city": "New York",
+      "location_country": "USA",
+      "location_lat": null,
+      "location_lng": null,
+      "skills": [
+        "mystery_shopping",
+        "site_inspection",
+        "verification",
+        "meetings"
+      ],
+      "availability": null,
+      "verification_level": 1,
+      "total_tasks": 5,
+      "avg_rating": 4.257488650356406,
+      "response_time_mins": 62,
+      "is_active": true,
+      "last_active_at": "2026-02-06T07:40:26.279Z"
+    },
+    {
+      "user_id": "0c5ca103-e879-4ed0-a897-244a6debda14",
+      "display_name": "James Park",
+      "bio": "Notary public and document specialist. Available for signings and legal witnessing.",
+      "avatar_url": null,
+      "hourly_rate_usd": 50,
+      "location_city": "Chicago",
+      "location_country": "USA",
+      "location_lat": null,
+      "location_lng": null,
+      "skills": [
+        "notary",
+        "verification",
+        "meetings"
+      ],
+      "availability": null,
+      "verification_level": 0,
+      "total_tasks": 14,
+      "avg_rating": 4.142141521966465,
+      "response_time_mins": 51,
+      "is_active": true,
+      "last_active_at": "2026-02-06T07:40:26.280Z"
+    }
+  ],
+  "agent_profiles": [
+    {
+      "user_id": "8c245689-617e-44e9-ab7d-971a8d6223d8",
+      "name": "Demo AI Agent",
+      "description": "A demo AI agent for testing the platform",
+      "api_key": "hf_cb08d69414c448948a10cbfee2caa95f",
+      "total_tasks": 0,
+      "total_spent_usd": 0
+    }
+  ],
+  "tasks": [
+    {
+      "id": "2af1ac72-441f-4fb5-9b49-9c22c9bad245",
+      "agent_id": "8c245689-617e-44e9-ab7d-971a8d6223d8",
+      "human_id": null,
+      "title": "Photograph storefront at 123 Main St",
+      "description": "Take 10 high-quality photos of the storefront from various angles. Include close-ups of signage and entrance. Natural lighting preferred.",
+      "category": "photography",
+      "status": "open",
+      "budget_usd": 50,
+      "platform_fee_usd": 2.5,
+      "location_required": true,
+      "location_lat": 37.7749,
+      "location_lng": -122.4194,
+      "location_address": "123 Main St, San Francisco, CA",
+      "deadline": "2026-02-13T07:40:26.280Z",
+      "proof_requirements": [
+        "10 photos from different angles",
+        "Close-up of signage"
+      ],
+      "created_at": "2026-02-06T07:40:26.280Z",
+      "assigned_at": null,
+      "completed_at": null
+    }
+  ],
+  "task_applications": [],
+  "messages": [],
+  "task_completions": [],
+  "reviews": []
+}

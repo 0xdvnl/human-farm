@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 // Types for API responses
@@ -257,6 +258,7 @@ const ResultsModal = ({
 };
 
 export default function EarnPage() {
+  const searchParams = useSearchParams();
   const [postUrl, setPostUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
@@ -373,6 +375,28 @@ export default function EarnPage() {
       fetchStats();
     }
   }, [isLoggedIn, authToken, fetchStats]);
+
+  // Handle Twitter OAuth callback - refetch stats when returning from Twitter
+  useEffect(() => {
+    const twitterStatus = searchParams.get('twitter');
+    const errorParam = searchParams.get('error');
+
+    if (twitterStatus === 'connected' && authToken) {
+      // Successfully connected Twitter - refetch stats to update UI
+      console.log('Twitter connected, refetching stats...');
+      fetchStats();
+      // Clean up URL
+      window.history.replaceState({}, '', '/earn');
+    }
+
+    if (errorParam) {
+      // Handle Twitter OAuth errors
+      const details = searchParams.get('details');
+      setError(details ? decodeURIComponent(details) : `Twitter connection failed: ${errorParam}`);
+      // Clean up URL
+      window.history.replaceState({}, '', '/earn');
+    }
+  }, [searchParams, authToken, fetchStats]);
 
   // Scroll reveal animations - content is visible by default, animations are progressive enhancement
   useEffect(() => {

@@ -134,12 +134,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Clear the code verifier cookie and redirect to earn page
-    const response = NextResponse.redirect(new URL('/earn?twitter=connected', request.url));
+    // Use NEXT_PUBLIC_APP_URL for consistent redirect
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://humanfarm.ai';
+    console.log('Twitter connection successful for user:', stateData.userId, 'redirecting to:', baseUrl);
+
+    const response = NextResponse.redirect(new URL('/earn?twitter=connected', baseUrl));
     response.cookies.delete('twitter_code_verifier');
 
     return response;
   } catch (error) {
     console.error('Twitter OAuth callback error:', error);
-    return NextResponse.redirect(new URL('/earn?error=callback_failed', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://humanfarm.ai';
+    return NextResponse.redirect(new URL('/earn?error=callback_failed', baseUrl));
   }
 }

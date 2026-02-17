@@ -291,6 +291,33 @@ export default function EarnPage() {
   // Error state
   const [error, setError] = useState<string | null>(null);
 
+  // Public stats (for the global counters)
+  const [publicStats, setPublicStats] = useState({
+    total_points_distributed: 0,
+    posts_scored: 0,
+    contributors: 0,
+  });
+
+  // Fetch public stats on mount (no auth required)
+  useEffect(() => {
+    const fetchPublicStats = async () => {
+      try {
+        const res = await fetch('/api/stats/public');
+        const data = await res.json();
+        if (data.success) {
+          setPublicStats({
+            total_points_distributed: data.data.total_points_distributed || 0,
+            posts_scored: data.data.posts_scored || 0,
+            contributors: data.data.contributors || 0,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch public stats:', err);
+      }
+    };
+    fetchPublicStats();
+  }, []);
+
   // Check auth on mount
   useEffect(() => {
     const checkAuth = () => {
@@ -632,20 +659,20 @@ export default function EarnPage() {
               <div className="flex items-center justify-center gap-2 mb-1">
                 <img src="/images/points-icon.png" alt="FARM Points" className="w-8 h-8 object-contain" />
                 <span className="text-3xl sm:text-4xl font-bold text-cyan">
-                  <AnimatedCounter target={847293} />
+                  <AnimatedCounter target={publicStats.total_points_distributed} />
                 </span>
               </div>
               <div className="text-sm text-cream/50 font-mono">Points Distributed</div>
             </div>
             <div>
               <div className="text-3xl sm:text-4xl font-bold text-gold mb-1">
-                <AnimatedCounter target={2341} />
+                <AnimatedCounter target={publicStats.posts_scored} />
               </div>
               <div className="text-sm text-cream/50 font-mono">Posts Scored</div>
             </div>
             <div>
               <div className="text-3xl sm:text-4xl font-bold text-terra mb-1">
-                <AnimatedCounter target={892} />
+                <AnimatedCounter target={publicStats.contributors} />
               </div>
               <div className="text-sm text-cream/50 font-mono">Contributors</div>
             </div>

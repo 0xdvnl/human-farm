@@ -14,82 +14,67 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Query all verified users, left join with human_profiles for additional data
-    // This shows all registered users as potential operators
-    const { data: users, error: usersError, count } = await supabase
-      .from('users')
+    // Query ONLY users who have completed their operator profile (human_profiles)
+    // This ensures browse shows actual operators, not campaign-only signups
+    let query = supabase
+      .from('human_profiles')
       .select(`
-        id,
-        wallet_address,
-        created_at,
-        email_verified,
-        twitter_username,
-        human_profiles (
-          display_name,
-          bio,
-          avatar_url,
-          hourly_rate_usd,
-          location_city,
-          location_country,
-          skills,
-          verification_level,
-          total_tasks,
-          avg_rating,
-          is_active
+        *,
+        users!inner (
+          id,
+          wallet_address,
+          created_at,
+          email_verified,
+          twitter_username
         )
       `, { count: 'exact' })
-      .eq('email_verified', true)
-      .order('created_at', { ascending: false })
+      .eq('users.email_verified', true);
+
+    // Apply rate filter at query level
+    if (maxRate) {
+      query = query.lte('hourly_rate_usd', parseFloat(maxRate));
+    }
+
+    // Apply rating filter at query level
+    if (minRating) {
+      query = query.gte('avg_rating', parseFloat(minRating));
+    }
+
+    // Get total count
+    const { count } = await supabase
+      .from('human_profiles')
+      .select('*, users!inner(email_verified)', { count: 'exact', head: true })
+      .eq('users.email_verified', true);
+
+    // Get humans with pagination
+    const { data: profiles, error } = await query
+      .order('avg_rating', { ascending: false, nullsFirst: false })
+      .order('total_tasks', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (usersError) throw usersError;
+    if (error) throw error;
 
-    // Format response - merge user data with profile data
-    let formattedHumans = (users || []).map((u: any) => {
-      const profile = u.human_profiles?.[0] || u.human_profiles || {};
+    // Format response - NEVER include email
+    let formattedHumans = (profiles || []).map((p: any) => ({
+      user_id: p.user_id,
+      display_name: p.display_name,
+      bio: p.bio || null,
+      avatar_url: p.avatar_url || null,
+      hourly_rate_usd: p.hourly_rate_usd || 0,
+      location_city: p.location_city || null,
+      location_country: p.location_country || null,
+      skills: p.skills || [],
+      verification_level: p.verification_level || 1,
+      total_tasks: p.total_tasks || 0,
+      avg_rating: p.avg_rating || null,
+      is_active: p.is_active !== false,
+      wallet_address: p.users?.wallet_address || null,
+      twitter_username: p.users?.twitter_username || null,
+      member_since: p.users?.created_at,
+      // NEVER expose email address publicly
+    }));
 
-      // Generate display name from twitter username or wallet or generic
-      const displayName = profile.display_name ||
-        (u.twitter_username ? `@${u.twitter_username}` : null) ||
-        (u.wallet_address ? `${u.wallet_address.slice(0, 6)}...${u.wallet_address.slice(-4)}` : null) ||
-        `Operator ${u.id.slice(0, 8)}`;
-
-      return {
-        user_id: u.id,
-        display_name: displayName,
-        bio: profile.bio || null,
-        avatar_url: profile.avatar_url || null,
-        hourly_rate_usd: profile.hourly_rate_usd || 0,
-        location_city: profile.location_city || null,
-        location_country: profile.location_country || null,
-        skills: profile.skills || [],
-        verification_level: profile.verification_level || (u.email_verified ? 1 : 0),
-        total_tasks: profile.total_tasks || 0,
-        avg_rating: profile.avg_rating || null,
-        is_active: profile.is_active !== false, // Default to active
-        wallet_address: u.wallet_address || null,
-        twitter_username: u.twitter_username || null,
-        member_since: u.created_at,
-        // NEVER expose email address publicly
-      };
-    });
-
-    // Apply filters
-    if (maxRate) {
-      const max = parseFloat(maxRate);
-      formattedHumans = formattedHumans.filter((h: any) =>
-        h.hourly_rate_usd === 0 || h.hourly_rate_usd <= max
-      );
-    }
-
-    if (minRating) {
-      const min = parseFloat(minRating);
-      formattedHumans = formattedHumans.filter((h: any) =>
-        h.avg_rating && h.avg_rating >= min
-      );
-    }
-
-    // Filter by location (if provided)
+    // Filter by location (if provided) - done in JS since Supabase doesn't support ilike on joined fields easily
     if (location) {
       const loc = location.toLowerCase();
       formattedHumans = formattedHumans.filter((h: any) =>

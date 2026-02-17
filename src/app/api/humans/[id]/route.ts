@@ -8,40 +8,36 @@ export async function GET(
   try {
     const { id } = params;
 
-    // First get the user to ensure they exist and are verified
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, wallet_address, created_at, email_verified, twitter_username')
-      .eq('id', id)
+    // Get human profile with user data - ONLY show if they have a complete profile
+    const { data: profile, error: profileError } = await supabase
+      .from('human_profiles')
+      .select(`
+        *,
+        users!inner (
+          id,
+          wallet_address,
+          created_at,
+          email_verified,
+          twitter_username
+        )
+      `)
+      .eq('user_id', id)
       .single();
 
-    if (userError || !user) {
+    if (profileError || !profile) {
       return NextResponse.json(
-        { success: false, error: 'User not found' },
+        { success: false, error: 'Operator not found' },
         { status: 404 }
       );
     }
 
     // Only show profile if email is verified
-    if (!user.email_verified) {
+    if (!profile.users?.email_verified) {
       return NextResponse.json(
         { success: false, error: 'This profile is not yet activated' },
         { status: 404 }
       );
     }
-
-    // Try to get human profile (may not exist for all users)
-    const { data: profile } = await supabase
-      .from('human_profiles')
-      .select('*')
-      .eq('user_id', id)
-      .single();
-
-    // Generate display name from profile, twitter, wallet, or generic
-    const displayName = profile?.display_name ||
-      (user.twitter_username ? `@${user.twitter_username}` : null) ||
-      (user.wallet_address ? `${user.wallet_address.slice(0, 6)}...${user.wallet_address.slice(-4)}` : null) ||
-      `Operator ${user.id.slice(0, 8)}`;
 
     // Get recent reviews
     const { data: reviews } = await supabase
@@ -72,21 +68,21 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
-        user_id: user.id,
-        display_name: displayName,
-        bio: profile?.bio || null,
-        avatar_url: profile?.avatar_url || null,
-        hourly_rate_usd: profile?.hourly_rate_usd || 0,
-        location_city: profile?.location_city || null,
-        location_country: profile?.location_country || null,
-        skills: profile?.skills || [],
-        verification_level: profile?.verification_level || (user.email_verified ? 1 : 0),
-        total_tasks: profile?.total_tasks || 0,
-        avg_rating: profile?.avg_rating || null,
-        is_active: profile?.is_active !== false,
-        wallet_address: user.wallet_address || null,
-        twitter_username: user.twitter_username || null,
-        member_since: user.created_at,
+        user_id: profile.user_id,
+        display_name: profile.display_name,
+        bio: profile.bio || null,
+        avatar_url: profile.avatar_url || null,
+        hourly_rate_usd: profile.hourly_rate_usd || 0,
+        location_city: profile.location_city || null,
+        location_country: profile.location_country || null,
+        skills: profile.skills || [],
+        verification_level: profile.verification_level || 1,
+        total_tasks: profile.total_tasks || 0,
+        avg_rating: profile.avg_rating || null,
+        is_active: profile.is_active !== false,
+        wallet_address: profile.users?.wallet_address || null,
+        twitter_username: profile.users?.twitter_username || null,
+        member_since: profile.users?.created_at,
         reviews: reviews || [],
         task_stats: taskStats,
         // NEVER expose email address publicly

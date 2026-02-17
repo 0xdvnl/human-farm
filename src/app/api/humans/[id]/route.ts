@@ -8,27 +8,40 @@ export async function GET(
   try {
     const { id } = params;
 
-    // Get human profile with user data - only show verified users
-    const { data: human, error: humanError } = await supabase
-      .from('human_profiles')
-      .select('*, users!inner(email, wallet_address, created_at, email_verified)')
-      .eq('user_id', id)
+    // First get the user to ensure they exist and are verified
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, wallet_address, created_at, email_verified, twitter_username')
+      .eq('id', id)
       .single();
 
-    if (humanError || !human) {
+    if (userError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Human not found' },
+        { success: false, error: 'User not found' },
         { status: 404 }
       );
     }
 
     // Only show profile if email is verified
-    if (!human.users?.email_verified) {
+    if (!user.email_verified) {
       return NextResponse.json(
         { success: false, error: 'This profile is not yet activated' },
         { status: 404 }
       );
     }
+
+    // Try to get human profile (may not exist for all users)
+    const { data: profile } = await supabase
+      .from('human_profiles')
+      .select('*')
+      .eq('user_id', id)
+      .single();
+
+    // Generate display name from profile, twitter, wallet, or generic
+    const displayName = profile?.display_name ||
+      (user.twitter_username ? `@${user.twitter_username}` : null) ||
+      (user.wallet_address ? `${user.wallet_address.slice(0, 6)}...${user.wallet_address.slice(-4)}` : null) ||
+      `Operator ${user.id.slice(0, 8)}`;
 
     // Get recent reviews
     const { data: reviews } = await supabase
@@ -59,13 +72,24 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
-        ...human,
-        email: human.users?.email,
-        wallet_address: human.users?.wallet_address,
-        member_since: human.users?.created_at,
-        users: undefined,
+        user_id: user.id,
+        display_name: displayName,
+        bio: profile?.bio || null,
+        avatar_url: profile?.avatar_url || null,
+        hourly_rate_usd: profile?.hourly_rate_usd || 0,
+        location_city: profile?.location_city || null,
+        location_country: profile?.location_country || null,
+        skills: profile?.skills || [],
+        verification_level: profile?.verification_level || (user.email_verified ? 1 : 0),
+        total_tasks: profile?.total_tasks || 0,
+        avg_rating: profile?.avg_rating || null,
+        is_active: profile?.is_active !== false,
+        wallet_address: user.wallet_address || null,
+        twitter_username: user.twitter_username || null,
+        member_since: user.created_at,
         reviews: reviews || [],
         task_stats: taskStats,
+        // NEVER expose email address publicly
       },
     });
   } catch (error) {

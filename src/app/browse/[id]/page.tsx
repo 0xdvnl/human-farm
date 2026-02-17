@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import {
   MapPin, Star, Clock, CheckCircle, ArrowLeft,
-  Mail, Wallet, Calendar, Briefcase, MessageSquare
+  Wallet, Calendar, Briefcase, MessageSquare
 } from 'lucide-react';
 
 interface HumanProfile {
@@ -22,8 +22,8 @@ interface HumanProfile {
   total_tasks: number;
   avg_rating?: number;
   is_active: boolean;
-  email: string;
   wallet_address?: string;
+  twitter_username?: string;
   member_since: string;
 }
 
@@ -252,25 +252,19 @@ export default function HumanProfilePage() {
               </div>
             </div>
 
-            {/* Contact Info */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-3 text-white">Contact</h2>
-              <div className="space-y-2">
+            {/* Wallet Info - only show if available */}
+            {human.wallet_address && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-3 text-white">Wallet</h2>
                 <div className="flex items-center gap-3 text-gray-400">
-                  <Mail size={18} />
-                  <span>{human.email}</span>
+                  <Wallet size={18} />
+                  <span className="font-mono text-sm">
+                    {human.wallet_address.slice(0, 6)}...
+                    {human.wallet_address.slice(-4)}
+                  </span>
                 </div>
-                {human.wallet_address && (
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <Wallet size={18} />
-                    <span className="font-mono text-sm">
-                      {human.wallet_address.slice(0, 6)}...
-                      {human.wallet_address.slice(-4)}
-                    </span>
-                  </div>
-                )}
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">

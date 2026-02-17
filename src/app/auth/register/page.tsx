@@ -103,7 +103,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Store user data and token
+      // Store user data and token (user is now logged in)
       localStorage.setItem('human-farm-user', JSON.stringify(data.data));
       localStorage.setItem('human-farm-token', data.data.token);
 
@@ -113,8 +113,8 @@ export default function RegisterPage() {
       // Clear referral code after successful registration
       localStorage.removeItem('human-farm-referral');
 
-      // Redirect to verify-email page since Supabase sends verification email on signup
-      router.push('/auth/verify-email');
+      // Redirect to /grow so users can start referring right away
+      router.push('/grow');
     } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/stats/public
- * Returns public statistics for the earn page (no auth required)
+ * Returns public statistics for the homepage and earn page (no auth required)
  */
 export async function GET() {
   try {
@@ -33,11 +33,18 @@ export async function GET() {
 
     const totalContributors = contributorsData?.length || 0;
 
-    // Get total registered users (for reference)
-    const { count: totalUsers } = await supabase
+    // Get verified operators count (humans with verified email)
+    const { count: operatorsVerified } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
+      .eq('type', 'human')
       .eq('email_verified', true);
+
+    // Get agents count
+    const { count: agentsCount } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('type', 'agent');
 
     return NextResponse.json({
       success: true,
@@ -45,7 +52,8 @@ export async function GET() {
         total_points_distributed: Math.round(totalPointsDistributed),
         posts_scored: postsScored || 0,
         contributors: totalContributors,
-        total_users: totalUsers || 0,
+        operators_verified: operatorsVerified || 0,
+        agents_count: agentsCount || 0,
       },
     });
   } catch (error) {

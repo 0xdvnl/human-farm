@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 // Hexagon SVG component
@@ -26,6 +26,28 @@ const Logo = ({ light = false }: { light?: boolean }) => (
 );
 
 export default function HomePage() {
+  // Public stats for hero section
+  const [stats, setStats] = useState({ operators_verified: 0, agents_count: 0 });
+
+  // Fetch public stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/stats/public');
+        const data = await res.json();
+        if (data.success) {
+          setStats({
+            operators_verified: data.data.operators_verified || 0,
+            agents_count: data.data.agents_count || 0,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -115,11 +137,9 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="reveal flex flex-wrap items-center justify-center gap-3 text-cream/50 text-xs sm:text-sm font-mono">
-            <span className="animate-pulse" style={{ animationDuration: '3s' }}>412 operators verified</span>
+            <span className="animate-pulse" style={{ animationDuration: '3s' }}>{stats.operators_verified.toLocaleString()} operators verified</span>
             <span className="hidden sm:inline">·</span>
-            <span>3 chains supported</span>
-            <span className="hidden sm:inline">·</span>
-            <span>Onchain since 2025</span>
+            <span>{stats.agents_count.toLocaleString()} agents joined</span>
           </div>
         </div>
 

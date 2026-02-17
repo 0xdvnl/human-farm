@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -257,7 +257,7 @@ const ResultsModal = ({
   );
 };
 
-export default function EarnPage() {
+function EarnPageContent() {
   const searchParams = useSearchParams();
   const [postUrl, setPostUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1341,5 +1341,26 @@ export default function EarnPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Loading fallback for Suspense boundary
+function EarnPageLoading() {
+  return (
+    <div className="min-h-screen bg-dark flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-cyan/20 border-t-cyan animate-spin" />
+        <p className="text-cream/50">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Wrap with Suspense to handle useSearchParams
+export default function EarnPage() {
+  return (
+    <Suspense fallback={<EarnPageLoading />}>
+      <EarnPageContent />
+    </Suspense>
   );
 }

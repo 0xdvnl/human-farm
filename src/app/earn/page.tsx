@@ -279,6 +279,10 @@ export default function EarnPage() {
   const [twitterConnected, setTwitterConnected] = useState(false);
   const [twitterUsername, setTwitterUsername] = useState<string | null>(null);
 
+  // Follow @humanfarmai requirement
+  const [followsHumanFarm, setFollowsHumanFarm] = useState(false);
+  const [checkingFollow, setCheckingFollow] = useState(false);
+
   // Email verification
   const [emailVerified, setEmailVerified] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -328,6 +332,7 @@ export default function EarnPage() {
         setReferralCode(data.data.referral_code);
         setTwitterConnected(data.data.twitter_connected || false);
         setTwitterUsername(data.data.twitter_username || null);
+        setFollowsHumanFarm(data.data.follows_humanfarm || false);
         setEmailVerified(data.data.email_verified || false);
         setUserEmail(data.data.email || null);
       }
@@ -446,6 +451,40 @@ export default function EarnPage() {
       setError('Failed to send verification email');
     } finally {
       setResendingVerification(false);
+    }
+  };
+
+  // Check if user follows @humanfarmai
+  const handleCheckFollow = async () => {
+    if (!authToken || checkingFollow) return;
+
+    setCheckingFollow(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/twitter/check-follow', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.follows) {
+          setFollowsHumanFarm(true);
+        } else {
+          setError('It looks like you haven\'t followed @humanfarmai yet. Please follow and try again.');
+        }
+      } else {
+        setError(data.error || 'Failed to verify follow status');
+      }
+    } catch (err) {
+      console.error('Check follow error:', err);
+      setError('Failed to verify follow status. Please try again.');
+    } finally {
+      setCheckingFollow(false);
     }
   };
 
@@ -726,7 +765,7 @@ export default function EarnPage() {
             )}
 
             {/* Twitter connection status */}
-            {isLoggedIn && twitterConnected && (
+            {isLoggedIn && twitterConnected && followsHumanFarm && (
               <div className="flex items-center justify-center gap-2 text-sm text-cream/60 mb-2">
                 <svg className="w-4 h-4 text-cyan" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -736,17 +775,24 @@ export default function EarnPage() {
             )}
 
             {isLoggedIn && !twitterConnected ? (
-              /* Show Connect Twitter button if logged in but Twitter not connected */
+              /* Step 1: Show Connect Twitter button if logged in but Twitter not connected */
               <div className="space-y-4">
                 <div className="bg-dark-surface/50 border border-cream/10 rounded-xl p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="w-8 h-8 rounded-full bg-cyan/20 text-cyan text-sm font-bold flex items-center justify-center">1</span>
+                    <div className="w-12 h-0.5 bg-cream/20" />
+                    <span className="w-8 h-8 rounded-full bg-cream/10 text-cream/40 text-sm font-bold flex items-center justify-center">2</span>
+                    <div className="w-12 h-0.5 bg-cream/20" />
+                    <span className="w-8 h-8 rounded-full bg-cream/10 text-cream/40 text-sm font-bold flex items-center justify-center">3</span>
+                  </div>
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center">
                     <svg className="w-6 h-6 text-[#1DA1F2]" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-cream mb-2">Connect your X account</h3>
+                  <h3 className="text-lg font-semibold text-cream mb-2">Step 1: Connect your X account</h3>
                   <p className="text-cream/50 text-sm mb-4">
-                    Link your X/Twitter account to verify ownership of your posts and start earning FARM points.
+                    Link your X/Twitter account to verify ownership of your posts.
                   </p>
                   <a
                     href={`/api/auth/twitter?token=${authToken}`}
@@ -756,9 +802,78 @@ export default function EarnPage() {
                   </a>
                 </div>
               </div>
+            ) : isLoggedIn && twitterConnected && !followsHumanFarm ? (
+              /* Step 2: Show Follow @humanfarmai requirement */
+              <div className="space-y-4">
+                <div className="bg-dark-surface/50 border border-cream/10 rounded-xl p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="w-8 h-8 rounded-full bg-green-500/20 text-green-400 text-sm font-bold flex items-center justify-center">✓</span>
+                    <div className="w-12 h-0.5 bg-cyan/50" />
+                    <span className="w-8 h-8 rounded-full bg-cyan/20 text-cyan text-sm font-bold flex items-center justify-center">2</span>
+                    <div className="w-12 h-0.5 bg-cream/20" />
+                    <span className="w-8 h-8 rounded-full bg-cream/10 text-cream/40 text-sm font-bold flex items-center justify-center">3</span>
+                  </div>
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-cyan/10 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="8.5" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+                      <line x1="20" y1="8" x2="20" y2="14" strokeLinecap="round" strokeLinejoin="round"/>
+                      <line x1="23" y1="11" x2="17" y2="11" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-cream mb-2">Step 2: Follow @humanfarmai</h3>
+                  <p className="text-cream/50 text-sm mb-2">
+                    Connected as <span className="text-cyan">@{twitterUsername}</span>
+                  </p>
+                  <p className="text-cream/50 text-sm mb-4">
+                    Follow our official X account to stay updated and unlock post submissions.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a
+                      href="https://x.com/humanfarmai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-[#1DA1F2] hover:bg-[#1a8cd8] transition-all duration-300 hover:shadow-lg hover:shadow-[#1DA1F2]/30"
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                      </svg>
+                      Follow @humanfarmai
+                    </a>
+                    <button
+                      onClick={handleCheckFollow}
+                      disabled={checkingFollow}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-cyan border-2 border-cyan/50 hover:border-cyan hover:bg-cyan/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {checkingFollow ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-cyan/30 border-t-cyan rounded-full animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          I've Followed
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
-              /* Show submit form if Twitter is connected or user is not logged in */
+              /* Step 3: Show submit form if all requirements are met */
               <>
+                {isLoggedIn && twitterConnected && followsHumanFarm && (
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="w-8 h-8 rounded-full bg-green-500/20 text-green-400 text-sm font-bold flex items-center justify-center">✓</span>
+                    <div className="w-12 h-0.5 bg-green-500/50" />
+                    <span className="w-8 h-8 rounded-full bg-green-500/20 text-green-400 text-sm font-bold flex items-center justify-center">✓</span>
+                    <div className="w-12 h-0.5 bg-cyan/50" />
+                    <span className="w-8 h-8 rounded-full bg-cyan/20 text-cyan text-sm font-bold flex items-center justify-center">3</span>
+                  </div>
+                )}
                 <div className="relative group">
                   <input
                     type="text"

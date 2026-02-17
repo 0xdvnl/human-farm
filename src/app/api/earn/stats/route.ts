@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
     // Get user's Twitter connection status and email verification (using fresh client)
     let twitterConnected = false;
     let twitterUsername: string | null = null;
+    let twitterId: string | null = null;
     let emailVerified = false;
     let userEmail: string | null = null;
 
@@ -65,6 +66,7 @@ export async function GET(request: NextRequest) {
       if (!userError && userData) {
         twitterConnected = !!userData.twitter_username;
         twitterUsername = userData.twitter_username || null;
+        twitterId = userData.twitter_id || null;
         emailVerified = !!userData.email_verified;
         userEmail = userData.email || null;
       }
@@ -72,6 +74,74 @@ export async function GET(request: NextRequest) {
     } catch (err) {
       // If columns don't exist yet, this will fail - that's OK
       console.log('User columns may not exist yet:', err);
+    }
+
+    // Check if user follows @humanfarmai (only if Twitter is connected)
+    let followsHumanfarm = false;
+    if (twitterConnected && twitterId) {
+      try {
+        // Call the check-follow endpoint internally
+        const bearerToken = process.env.TWITTER_BEARER_TOKEN;
+        if (bearerToken) {
+          // Get humanfarmai's Twitter ID
+          const HUMANFARM_TWITTER_USERNAME = 'humanfarmai';
+          const userResponse = await fetch(
+            `https://api.twitter.com/2/users/by/username/${HUMANFARM_TWITTER_USERNAME}`,
+            {
+              headers: { 'Authorization': `Bearer ${bearerToken}` },
+              cache: 'no-store',
+            }
+          );
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            const humanfarmId = userData.data?.id;
+
+            if (humanfarmId) {
+              // Check if user is in humanfarmai's followers (check first few pages)
+              let paginationToken: string | undefined;
+              let checked = 0;
+              const maxToCheck = 5000; // Limit for performance
+
+              while (checked < maxToCheck && !followsHumanfarm) {
+                const url = new URL(`https://api.twitter.com/2/users/${humanfarmId}/followers`);
+                url.searchParams.set('max_results', '1000');
+                if (paginationToken) {
+                  url.searchParams.set('pagination_token', paginationToken);
+                }
+
+                const followersResponse = await fetch(url.toString(), {
+                  headers: { 'Authorization': `Bearer ${bearerToken}` },
+                  cache: 'no-store',
+                });
+
+                if (followersResponse.ok) {
+                  const followersData = await followersResponse.json();
+                  const followers = followersData.data || [];
+
+                  // Check if user is in this batch
+                  if (followers.some((f: { id: string }) => f.id === twitterId)) {
+                    followsHumanfarm = true;
+                    break;
+                  }
+
+                  checked += followers.length;
+                  paginationToken = followersData.meta?.next_token;
+
+                  if (!paginationToken || followers.length === 0) {
+                    break;
+                  }
+                } else {
+                  console.log('Failed to fetch followers for stats');
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.log('Error checking follow status in stats:', err);
+      }
     }
 
     let { data: userPoints, error: pointsError } = await freshSupabase
@@ -180,6 +250,7 @@ export async function GET(request: NextRequest) {
         referral_code: referralCode,
         twitter_connected: twitterConnected,
         twitter_username: twitterUsername,
+        follows_humanfarm: followsHumanfarm,
         email_verified: emailVerified,
         email: userEmail,
         recent_submissions: submissionsList.map((s: any) => ({
